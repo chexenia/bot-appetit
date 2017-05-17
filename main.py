@@ -18,6 +18,9 @@ from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 import webapp2
 
+LUNCH_DB = 'lunch.db'
+BREAKFAST_DB = 'breakfast.db'
+
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -28,16 +31,9 @@ assert len(TOKEN) == 45
 
 BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
 
-DB_PICKLE = "db.p"
-
-# ================================
-
 class EnableStatus(ndb.Model):
     # key name: str(chat_id)
     enabled = ndb.BooleanProperty(indexed=False, default=False)
-
-
-# ================================
 
 def setEnabled(chat_id, yes):
     es = EnableStatus.get_or_insert(str(chat_id))
@@ -51,13 +47,10 @@ def getEnabled(chat_id):
     return False
 
 
-# ================================
-
 class MeHandler(webapp2.RequestHandler):
     def get(self):
         urlfetch.set_default_fetch_deadline(60)
         self.response.write(json.dumps(json.load(urllib2.urlopen(BASE_URL + 'getMe'))))
-
 
 class GetUpdatesHandler(webapp2.RequestHandler):
     def get(self):
@@ -72,6 +65,28 @@ class SetWebhookHandler(webapp2.RequestHandler):
         if url:
             self.response.write(json.dumps(json.load(urllib2.urlopen(BASE_URL + 'setWebhook', urllib.urlencode({'url': url})))))
 
+def get_order(person):
+    now = datetime.datetime.now()
+    wday = int(now.strftime("%w"))
+    hday = int(now.strftime("%H"))
+    meal = ""
+    if hday > 9 and hday < 12:
+        meal = BREAKFAST_DB
+    else:
+        meal = LUNCH_DB
+
+    msg = u'Not understood'
+
+    with open(meal, 'rb') as f:
+        meal_db = pickle.load(f)
+        if wday not in meal_db:
+            msg = u"No work - no food. That's the law."
+        elif person not in meal_db[wday]:
+            msg = u"You did not order."
+        else:
+            msg = u"\n".join(meal_db[wday][person])
+
+    return msg
 
 class WebhookHandler(webapp2.RequestHandler):
     def post(self):
@@ -137,39 +152,19 @@ class WebhookHandler(webapp2.RequestHandler):
         # CUSTOMIZE FROM HERE
 
         elif 'who are you' in text:
-            reply('I am you waiter!')
+            reply('I am you waiter. Ready to serve.')
         elif 'what time' in text:
-            reply('look at the top-right corner of your screen!')
+            reply('Look at the top of your screen.')
+        elif 'wtf' in text.lower():
+            reply("Be patient - or go fasten")
         else:
-            with open(DB_PICKLE, 'rb') as f:
-                lunch_db = pickle.load(f)
-            query = text.lower()
-            now = datetime.datetime.now()
-            wday = int(now.strftime("%w"))
-            if wday not in lunch_db:
-                reply(u"No work - no food. That's the law.")
-            elif query not in lunch_db[wday]:
-                reply(u"Cannot find you in the DB, sorry!")
-            else:
-                reply(u"Today is " + now.strftime("%A") + u".\n" + u"\n".join(lunch_db[wday][query]))
-            return
-            # leave just in case
             if getEnabled(chat_id):
-                try:
-                    resp1 = json.load(urllib2.urlopen('http://www.simsimi.com/requestChat?lc=en&ft=1.0&req=' + urllib.quote_plus(text.encode('utf-8'))))
-                    back = resp1.get('res').get('msg')
-                except urllib2.HTTPError, err:
-                    logging.error(err)
-                    back = str(err)
-                if not back:
-                    reply('okay...')
-                elif 'I HAVE NO RESPONSE' in back:
-                    reply('you said something with no meaning')
-                else:
-                    reply(back)
+                person = text.lower()
+                msg = get_order(person)
+                reply(msg)
             else:
-                logging.info('not enabled for chat_id {}'.format(chat_id))
-
+                reply("Bot is resting. Use old-fashioned papersheet please.")
+            return
 
 app = webapp2.WSGIApplication([
     ('/me', MeHandler),

@@ -22,6 +22,9 @@ WDAYS = {u"воскресенье" : 0,
          u"пятница" : 5,
          u"суббота" : 6}
 
+LUNCH_DB = 'lunch.db'
+BREAKFAST_DB = 'breakfast.db'
+
 def get_pers_columns(ws, name_query):
     pers_columns = {}
     for i in xrange(FIRST_NAME_COL, MAX_COL):
