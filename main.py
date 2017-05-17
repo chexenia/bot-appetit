@@ -147,7 +147,7 @@ class WebhookHandler(webapp2.RequestHandler):
             now = datetime.datetime.now()
             wday = int(now.strftime("%w"))
             if wday not in lunch_db:
-                reply(u"Today Kremlin is closed! Come back tomorrow.")
+                reply(u"No work - no food. That's the law.")
             elif query not in lunch_db[wday]:
                 reply(u"Cannot find you in the DB, sorry!")
             else:

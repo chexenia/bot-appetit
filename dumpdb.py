@@ -7,7 +7,7 @@ import openpyxl
 import arteclunch
 
 def make_person_string(order, name, verbose=False):
-    reply = [u"Here is the order for Mr/Ms "+name+u":"]
+    reply = [u"Your order is waiting:"]
     
     for item in order:
         reply.append(item[0])
