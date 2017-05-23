@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*- 
 
 import sys
-
+import pickle
 import openpyxl
 
 MAX_COL = 100
@@ -22,8 +22,9 @@ WDAYS = {u"воскресенье" : 0,
          u"пятница" : 5,
          u"суббота" : 6}
 
-LUNCH_DB = 'lunch.db'
-BREAKFAST_DB = 'breakfast.db'
+LUNCH = u'Обед'
+BREAKFAST = u'Завтрак'
+MEAL_DB = 'meal.db'
 
 def get_pers_columns(ws, name_query):
     pers_columns = {}
@@ -78,40 +79,23 @@ def get_order(ws, split_rows, day, col):
             
     return order
 
-def print_order(order, name, verbose=False):
-    print u"Here is the order for Mr/Ms", name+u":"
-    
-    for item in order:
-        print item[0]
-        if verbose and item[1]:
-            print "*", item[1]
+def reply_order(person, wday, hday):
+    meal = ""
+    msg = u''
+    if hday < 12:
+        msg = BREAKFAST
+        meal = BREAKFAST
+    else:
+        msg = LUNCH
+        meal = LUNCH
+    with open(MEAL_DB, 'rb') as f:
+        meal_db = pickle.load(f)
+        if wday not in meal_db[meal]:
+            msg = u"No work - no food. That's the law."
+        elif person not in meal_db[meal][wday]:
+            msg = u"You did not order."
+        else:
+            msg += "\n" + u"\n".join(meal_db[meal][wday][person])
+    f.close()
+    return msg
 
-
-if __name__=="__main__":
-    if len(sys.argv) < 4:
-        print "Incorrect format: pass at least filename, person name and weakday number."
-        sys.exit()
-
-    fname = sys.argv[1]
-    name = sys.argv[2].decode("utf-8")
-    day = int(sys.argv[3])
-    verbose = len(sys.argv) > 4 and sys.argv[4] == "-v"
-
-    if day not in xrange(0, 7):
-        print "Day number should be from 0 (Sun) to 6 (Sat)."
-        sys.exit()
-
-    wb = openpyxl.load_workbook(filename = fname, read_only=True)
-    ws = wb.active
-
-    splits = split_days(ws)
-    if day not in splits:
-        print "Menu not found for the specified day."
-        sys.exit()
-    columns = get_pers_columns(ws, name)
-
-    print "Found", len(columns), "person(s) matching the string."
-    for pers in columns:
-        order = get_order(ws, splits, day, pers)
-        print ""
-        print_order(order, columns[pers], verbose=verbose)

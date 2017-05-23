@@ -8,6 +8,7 @@ import urllib
 import urllib2
 import pickle
 import datetime
+#from pytz.gae import pytz
 
 # for sending images
 from PIL import Image
@@ -18,8 +19,9 @@ from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 import webapp2
 
-LUNCH_DB = 'lunch.db'
-BREAKFAST_DB = 'breakfast.db'
+LUNCH = u'Обед'
+BREAKFAST = u'Завтрак'
+MEAL_DB = 'meal.db'
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -65,28 +67,26 @@ class SetWebhookHandler(webapp2.RequestHandler):
         if url:
             self.response.write(json.dumps(json.load(urllib2.urlopen(BASE_URL + 'setWebhook', urllib.urlencode({'url': url})))))
 
-def get_order(person):
-    now = datetime.datetime.now()
-    wday = int(now.strftime("%w"))
-    hday = int(now.strftime("%H"))
+def reply_order(person, wday, hday):
     meal = ""
-    if hday > 9 and hday < 12:
-        meal = BREAKFAST_DB
+    msg = u''
+    if hday < 12:
+        msg = BREAKFAST
+        meal = BREAKFAST
     else:
-        meal = LUNCH_DB
-
-    msg = u'Not understood'
-
-    with open(meal, 'rb') as f:
+        msg = LUNCH
+        meal = LUNCH
+    with open(MEAL_DB, 'rb') as f:
         meal_db = pickle.load(f)
-        if wday not in meal_db:
+        if wday not in meal_db[meal]:
             msg = u"No work - no food. That's the law."
-        elif person not in meal_db[wday]:
+        elif person not in meal_db[meal][wday]:
             msg = u"You did not order."
         else:
-            msg = u"\n".join(meal_db[wday][person])
-
+            msg += "\n" + u"\n".join(meal_db[meal][wday][person])
+    f.close()
     return msg
+
 
 class WebhookHandler(webapp2.RequestHandler):
     def post(self):
@@ -146,6 +146,10 @@ class WebhookHandler(webapp2.RequestHandler):
                 output = StringIO.StringIO()
                 img.save(output, 'JPEG')
                 reply(img=output.getvalue())
+            elif text.startswith('/test'):
+                params = text.split(" ")
+                msg = reply_order(params[1], int(params[2]), int(params[3]))
+                reply(msg)
             else:
                 reply('What command?')
 
@@ -160,7 +164,12 @@ class WebhookHandler(webapp2.RequestHandler):
         else:
             if getEnabled(chat_id):
                 person = text.lower()
-                msg = get_order(person)
+                now = datetime.datetime.utcnow()
+                #now = datetime.datetime.now(pytz.timezone('Europe/Moscow')) #import pytz breaks the app not work
+                wday = int(now.strftime("%w"))
+                hday = (int(now.strftime("%H")) + 3) #% 24 #TODO
+
+                msg = reply_order(person, wday, hday)
                 reply(msg)
             else:
                 reply("Bot is resting. Use old-fashioned papersheet please.")

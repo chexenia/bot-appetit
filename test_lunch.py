@@ -1,65 +1,36 @@
 # -*- coding: utf-8 -*- 
 import sys
-import pickle
 import datetime
-import arteclunch as artlu
+import arteclunch as arl
+import pickle
+from pytz.gae import pytz
 
-def test_db_query(db, person, date):
-    with open(db, 'rb') as f:
-        food_db = pickle.load(f)
-        msg = (food_db[date][person])
-    return msg
+def test_db_query(person, wday, hday):
+    return arl.reply_order(person, wday, hday)
 
-def test_query(person, date):
-    now = datetime.datetime.now()
-    wday = int(now.strftime("%w"))
-    hday = int(now.strftime("%H"))
-    print(hday)
-    meal = ""
-    if hday > 9 and hday < 12:
-        meal = artlu.BREAKFAST_DB
-    else:
-        meal = artlu.LUNCH_DB
-    msg = test_db_query(meal, person, date)
-    return meal, msg
-
-def get_order(person):
-    now = datetime.datetime.now()
-    wday = int(now.strftime("%w"))
-    hday = int(now.strftime("%H"))
-    meal = ""
-    if hday > 9 and hday < 12:
-        meal = artlu.BREAKFAST_DB
-    else:
-        meal = artlu.LUNCH_DB
-
-    msg = u'Not understood'
-
-    with open(meal, 'rb') as f:
+def print_db():
+    with open(arl.MEAL_DB, 'rb') as f:
         meal_db = pickle.load(f)
-        if wday not in meal_db:
-            msg = u"No work - no food. That's the law."
-        elif query not in meal_db[wday]:
-            msg = u"You did not order."
-        else:
-            msg = u"\n".join(meal_db[wday][person])
+        for meal in meal_db:
+            print(meal.encode('utf-8'))
+            for wday in meal_db[meal]:
+                print(wday)
+                for person in meal_db[meal][wday]:
+                    print(person.encode('utf-8'))
+                    print(meal_db[meal][wday][person])
 
-    return msg
+    f.close()
 
 if __name__=="__main__":
-    if len(sys.argv) < 2:
-        print "[Supported format]: person name, week date"
+    if len(sys.argv) < 3:
+        print "[Supported format]: person name, week date, hour of the day"
         sys.exit()
 
     person = sys.argv[1].decode("utf-8")
-    date = int(sys.argv[2])
+    wday = int(sys.argv[2])
+    hday = int(sys.argv[3])
 
-    now = datetime.datetime.now()
-    wday = int(now.strftime("%w"))
-
-    print (date, person)
-    meal, query = test_query(person, date)
-
-    print(meal)
-    for q in query:
-        print (q)
+    reply = test_db_query(person, wday, hday)
+    print(datetime.datetime.now(pytz.timezone('Europe/Moscow')))
+    print(reply)
+    #print_db()

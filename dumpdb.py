@@ -4,10 +4,10 @@
 import sys
 import pickle
 import openpyxl
-import arteclunch
+import arteclunch as arl
 
-def make_person_string(order, name, verbose=False):
-    reply = [u"Your order is waiting:"]
+def generate_personal_reply(order, name, verbose=False):
+    reply = [u""]
     
     for item in order:
         reply.append(item[0])
@@ -16,23 +16,19 @@ def make_person_string(order, name, verbose=False):
 
     return reply
 
-def serialize_sheet(wb, sheet_name, db_name, motto):
+def serialize_sheet(wb, sheet_name, meal, db, motto):
     ws = wb[sheet_name]
 
-    splits = arteclunch.split_days(ws)
-    persons = arteclunch.enumerate_persons(ws)
+    splits = arl.split_days(ws)
+    persons = arl.enumerate_persons(ws)
 
-    db = {day : {} for day in splits}
+    db[meal] = {day : {} for day in splits}
 
     for name, col in persons:
         for day in splits:
-            order = arteclunch.get_order(ws, splits, day, col)
-            reply = make_person_string(order, name.strip(), verbose=True)
-            db[day][name.strip()] = reply + [u"", motto]
-
-    with open(db_name, 'wb') as f:
-        pickle.dump(db, f)
-
+            order = arl.get_order(ws, splits, day, col)
+            reply = generate_personal_reply(order, name.strip(), verbose=False)
+            db[meal][day][name.strip()] = reply + [u"", motto]
 
 if __name__=="__main__":
     if len(sys.argv) < 2:
@@ -43,5 +39,13 @@ if __name__=="__main__":
     motto = sys.argv[2] if len(sys.argv) >= 3 else u""
     wb = openpyxl.load_workbook(filename = fname, read_only=True)
 
-    serialize_sheet(wb, u'Завтраки', arteclunch.BREAKFAST_DB, motto)
-    serialize_sheet(wb, u'Обеды', arteclunch.LUNCH_DB, motto)
+    db = {arl.BREAKFAST : {}, arl.LUNCH : {}}
+    print(db)
+
+    serialize_sheet(wb, u'Завтраки', arl.BREAKFAST, db, motto)
+    serialize_sheet(wb, u'Обеды', arl.LUNCH, db, motto)
+
+    with open(arl.MEAL_DB, 'wb') as f:
+        pickle.dump(db, f)
+
+    f.close()
