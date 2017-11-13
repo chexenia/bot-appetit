@@ -5,6 +5,7 @@ import sys
 import pickle
 import openpyxl
 import arteclunch as arl
+import os
 
 def generate_personal_reply(order, name, verbose=False):
     reply = [u""]
@@ -41,6 +42,9 @@ if __name__=="__main__":
 
     db = {arl.BREAKFAST : {}, arl.LUNCH : {}}
     print(db)
+    
+    if os.path.exists(arl.MEAL_DB):
+        os.remove(arl.MEAL_DB)
 
     serialize_sheet(wb, u'Завтраки', arl.BREAKFAST, db, motto)
     serialize_sheet(wb, u'Обеды', arl.LUNCH, db, motto)
