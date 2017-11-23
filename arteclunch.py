@@ -65,7 +65,7 @@ def get_order(ws, split_rows, day, col):
     order = []
     for row in xrange(split_rows[day][0], split_rows[day][1]):
         cell = ws.cell(row = row, column = col).value
-        if cell:
+        if cell and str(cell).strip():
             course = ws.cell(row = row, column = COURSE_COL).value
             mass = ws.cell(row = row+1, column = 1).value
             num_ord = ws.cell(row = row+1, column = COURSE_COL+1).value
