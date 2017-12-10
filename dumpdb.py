@@ -46,8 +46,8 @@ if __name__=="__main__":
     if os.path.exists(arl.MEAL_DB):
         os.remove(arl.MEAL_DB)
 
-    serialize_sheet(wb, u'Завтраки', arl.BREAKFAST, db, motto)
-    serialize_sheet(wb, u'Обеды', arl.LUNCH, db, motto)
+    #serialize_sheet(wb, u'Завтраки', arl.BREAKFAST, db, motto)
+    serialize_sheet(wb, u'Лист1', arl.LUNCH, db, motto)
 
     with open(arl.MEAL_DB, 'wb') as f:
         pickle.dump(db, f)

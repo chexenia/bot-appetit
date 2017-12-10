@@ -82,12 +82,12 @@ def get_order(ws, split_rows, day, col):
 def reply_order(person, wday, hday):
     meal = ""
     msg = u''
-    if hday < 12:
-        msg = BREAKFAST
-        meal = BREAKFAST
-    else:
-        msg = LUNCH
-        meal = LUNCH
+    # if hday < 12:
+    #     msg = BREAKFAST
+    #     meal = BREAKFAST
+    # else:
+    msg = LUNCH
+    meal = LUNCH
     with open(MEAL_DB, 'rb') as f:
         meal_db = pickle.load(f)
         if wday not in meal_db[meal]:
