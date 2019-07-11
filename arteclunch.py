@@ -4,6 +4,7 @@
 import sys
 import pickle
 import openpyxl
+import time
 
 MAX_COL = 100
 MAX_ROW = 400
@@ -27,21 +28,28 @@ BREAKFAST = u'Завтрак'
 MEAL_DB = 'meal.db'
 
 def get_pers_columns(ws, name_query):
+    start = time.time()
     pers_columns = {}
     for i in xrange(FIRST_NAME_COL, MAX_COL):
         cell = ws.cell(row = HEADER, column = i).value
         if cell and name_query.lower() in cell.lower():
             pers_columns[i] = cell
+    
+    print('get_pers_columns', time.time() - start, 'sec')
+    
     return pers_columns
 
 def enumerate_persons(ws):
+    start = time.time()
     for i in xrange(FIRST_NAME_COL, MAX_COL):
         cell = ws.cell(row = HEADER, column = i).value
         if cell:
             yield (cell.lower(), i)
-
+    
+    print('enumerate_persons', time.time() - start, 'sec')
 
 def split_days(ws):
+    start = time.time()
     split_rows = {}
     last_split = None
     for i in xrange(1, MAX_ROW):
@@ -58,10 +66,13 @@ def split_days(ws):
     if len(split_rows) > len(WDAYS):
         print split_rows
         raise ValueError("Repeated weekdays detected")
-        
+    
+    print('split_days', time.time() - start, 'sec')
+    
     return split_rows
 
 def get_order(ws, split_rows, day, col):
+    start = time.time()
     order = []
     for row in xrange(split_rows[day][0], split_rows[day][1]):
         cell = ws.cell(row = row, column = col).value
@@ -78,9 +89,12 @@ def get_order(ws, split_rows, day, col):
                 
             order.append((course, desc, count_mark))
             
+    print('get_order', time.time() - start, 'sec')
+
     return order
 
 def reply_order(person, wday, hday):
+    start = time.time()
     meal = ""
     msg = u''
     # if hday < 12:
@@ -98,5 +112,8 @@ def reply_order(person, wday, hday):
         else:
             msg += "\n" + u"\n".join(meal_db[meal][wday][person])
     f.close()
+
+    print('reply_order', time.time() - start, 'sec')
+
     return msg
 

@@ -6,6 +6,7 @@ import pickle
 import openpyxl
 import arteclunch as arl
 import os
+import time
 
 def generate_personal_reply(order, name, verbose=False):
     reply = [u""]
@@ -32,6 +33,7 @@ def serialize_sheet(wb, sheet_name, meal, db, motto):
             db[meal][day][name.strip()] = reply + [u"", motto]
 
 if __name__=="__main__":
+    start = time.time()
     if len(sys.argv) < 2:
         print "Incorrect format: pass at least the xlsx path."
         sys.exit()
@@ -53,3 +55,5 @@ if __name__=="__main__":
         pickle.dump(db, f)
 
     f.close()
+
+    print('total dump', time.time() - start, 'sec')
