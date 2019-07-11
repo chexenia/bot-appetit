@@ -74,20 +74,23 @@ def split_days(ws):
 def get_order(ws, split_rows, day, col):
     start = time.time()
     order = []
-    for row in xrange(split_rows[day][0], split_rows[day][1]):
-        cell = ws.cell(row = row, column = col).value
-        count_mark = str(cell).strip()
-        if cell and count_mark:
-            course = ws.cell(row = row, column = COURSE_COL).value
-            mass = ws.cell(row = row+1, column = 1).value
-            num_ord = ws.cell(row = row+1, column = COURSE_COL+1).value
-            desc = u""
-            if not mass and not num_ord:
-                desc = ws.cell(row = row+1, column = COURSE_COL).value
-                if desc is None:
-                    desc = u""
-                
-            order.append((course, desc, count_mark))
+
+    for index, row in enumerate(ws.iter_rows(min_row=split_rows[day][0], min_col=col, max_row=split_rows[day][1], max_col=col)):
+        index = split_rows[day][0] + index
+        for c in row:
+            cell = c.value
+            count_mark = str(cell).strip()
+            if cell and count_mark:
+                course = ws.cell(row = index, column = COURSE_COL).value
+                mass = ws.cell(row = index+1, column = 1).value
+                num_ord = ws.cell(row = index+1, column = COURSE_COL+1).value
+                desc = u""
+                if not mass and not num_ord:
+                    desc = ws.cell(row = index+1, column = COURSE_COL).value
+                    if desc is None:
+                        desc = u""
+                    
+                order.append((course, desc, count_mark))
             
     print('get_order', time.time() - start, 'sec')
 

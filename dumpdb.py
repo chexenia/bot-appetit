@@ -28,6 +28,7 @@ def serialize_sheet(wb, sheet_name, meal, db, motto):
 
     for name, col in persons:
         for day in splits:
+            print(name, day)
             order = arl.get_order(ws, splits, day, col)
             reply = generate_personal_reply(order, name.strip(), verbose=False)
             db[meal][day][name.strip()] = reply + [u"", motto]
