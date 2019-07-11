@@ -7,7 +7,7 @@ import openpyxl
 import time
 
 MAX_COL = 100
-MAX_ROW = 400
+MAX_ROW = 310
 HEADER = 2
 
 MAX_LHS_WIDTH = 3
