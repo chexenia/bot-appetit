@@ -11,7 +11,7 @@ def generate_personal_reply(order, name, verbose=False):
     reply = [u""]
     
     for item in order:
-        reply.append(item[0])
+        reply.append(item[0] + ' - ' + str(int(float(item[2])))) #dish + count 
         if verbose and item[1]:
             reply.append("* " + item[1])
 
