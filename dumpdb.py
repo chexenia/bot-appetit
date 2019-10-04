@@ -50,7 +50,11 @@ if __name__=="__main__":
         os.remove(arl.MEAL_DB)
 
     #serialize_sheet(wb, u'Завтраки', arl.BREAKFAST, db, motto)
-    serialize_sheet(wb, u'Лист1', arl.LUNCH, db, motto)
+    sheetNames = [u'Sheet1', u'Лист1']
+    for sheet in sheetNames:
+        if sheet in wb.sheetnames:
+            serialize_sheet(wb, sheet, arl.LUNCH, db, motto)
+            break
 
     with open(arl.MEAL_DB, 'wb') as f:
         pickle.dump(db, f)
